@@ -9,7 +9,7 @@ pipeline {
 
     stage('Build Image') {
       steps {
-        sh 'docker build -f stockbarang/Dockerfile .'
+        sh 'docker build -f stockbarang/stockbarang/Dockerfile .'
       }
     }
 
