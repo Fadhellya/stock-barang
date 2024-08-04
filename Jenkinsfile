@@ -9,9 +9,12 @@ pipeline {
 
     stage('Build Image') {
       steps {
-        sh 'docker build -f stockbarang/stockbarang/Dockerfile .'
+        script {
+          docker.withServer('tcp://docker:2376', '') {
+            sh 'docker build -f stockbarang/stockbarang/Dockerfile .'
+          }
+        }
       }
     }
-
   }
 }
