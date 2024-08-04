@@ -7,5 +7,11 @@ pipeline {
       }
     }
 
+    stage('Build Image') {
+      steps {
+        sh 'docker build -f stockbarang/Dockerfile .'
+      }
+    }
+
   }
 }
