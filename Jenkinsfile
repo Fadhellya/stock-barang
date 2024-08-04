@@ -11,10 +11,12 @@ pipeline {
       steps {
         script {
           docker.withServer('tcp://docker:2376', '') {
-            sh 'docker build -f stockbarang/stockbarang/Dockerfile .'
+            sh 'docker build -f stockbarang/Dockerfile .'
           }
         }
+
       }
     }
+
   }
 }
