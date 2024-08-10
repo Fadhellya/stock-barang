@@ -4,8 +4,10 @@ pipeline {
     environment {
         IMAGE_NAME = 'alexhermansyah/stockbarang:latest'
         CONTAINER_NAME = 'stockbarang_container'
-        DOCKER_USERNAME = credentials('usernamedocker') // Use Jenkins credentials ID
-        DOCKER_PASSWORD = credentials('passworddocker') // Use Jenkins credentials ID
+        DOCKER_USERNAME = credentials('usernamedocker')
+        DOCKER_PASSWORD = credentials('passworddocker')
+        EC2_HOST = 'ubuntu@ec2-52-54-155-185.compute-1.amazonaws.com'  // Ganti dengan IP publik EC2
+        SSH_CREDENTIALS_ID = 'ec2-ssh-key'  // Ganti dengan ID kredensial SSH yang ditambahkan ke Jenkins
     }
 
     options {
@@ -40,17 +42,20 @@ pipeline {
             }
         }
 
-        stage('Deploy Docker Container') {
+        stage('Deploy Docker Container on EC2') {
             steps {
                 script {
-                    sh """
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    """
-
-                    sh """
-                    docker run -d --name ${CONTAINER_NAME} -p 80:80 ${IMAGE_NAME}
-                    """
+                    // SSH into EC2 and run Docker commands
+                    sshagent(['${SSH_CREDENTIALS_ID}']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker pull ${IMAGE_NAME}
+                        docker run -d --name ${CONTAINER_NAME} -p 80:80 ${IMAGE_NAME}
+                        EOF
+                        """
+                    }
                 }
             }
         }
