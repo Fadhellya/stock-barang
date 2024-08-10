@@ -7,7 +7,7 @@ pipeline {
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
         EC2_HOST = 'ec2-52-54-155-185.compute-1.amazonaws.com'
-        SSH_CREDENTIALS_ID = 'ec2-ssh-key'
+        SSH_CREDENTIALS_ID = 52.54.155.185
     }
 
     options {
