@@ -47,7 +47,7 @@ pipeline {
                 script {
                     echo "Deploying Docker Container on EC2"
                     echo "EC2 Host: ${EC2_HOST}"
-                    sshagent(['${SSH_CREDENTIALS_ID}']) {
+                    sshagent(['ec2-ssh-key']) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} 'echo "Connected to EC2"'
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
