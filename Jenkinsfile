@@ -7,7 +7,7 @@ pipeline {
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
         EC2_HOST = 'ec2-52-54-155-185.compute-1.amazonaws.com'
-        SSH_CREDENTIALS_ID = 'ec2-ssh-key'
+        SSH_CREDENTIALS_ID = 'ec2-ssh-key'  // Pastikan SSH_CREDENTIALS_ID ini sesuai dengan ID yang ada di Jenkins
     }
 
     options {
@@ -24,9 +24,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
+                    sh '''
                     docker build -t ${IMAGE_NAME} .
-                    """
+                    '''
                 }
             }
         }
@@ -34,10 +34,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    sh """
-                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                    sh '''
+                    docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
                     docker push ${IMAGE_NAME}
-                    """
+                    '''
                 }
             }
         }
@@ -47,17 +47,15 @@ pipeline {
                 script {
                     echo "Deploying Docker Container on EC2"
                     echo "EC2 Host: ${EC2_HOST}"
-                    sshagent(['ec2-ssh-key']) {
-                        sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} 'echo "Connected to EC2"'
+                    sshagent([SSH_CREDENTIALS_ID]) {
+                        sh '''
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
-                        sudo su
-                        docker stop ${CONTAINER_NAME} || true
-                        docker rm ${CONTAINER_NAME} || true
-                        docker pull ${IMAGE_NAME}
-                        docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
+                        sudo docker stop ${CONTAINER_NAME} || true
+                        sudo docker rm ${CONTAINER_NAME} || true
+                        sudo docker pull ${IMAGE_NAME}
+                        sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
                         EOF
-                        """
+                        '''
                     }
                 }
             }
