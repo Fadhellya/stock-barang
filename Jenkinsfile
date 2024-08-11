@@ -7,7 +7,7 @@ pipeline {
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
         EC2_HOST = '52.54.155.185'
-        SSH_CREDENTIALS_ID = '52.54.155.185'  // Pastikan SSH_CREDENTIALS_ID ini sesuai dengan ID yang ada di Jenkins
+        SSH_CREDENTIALS_ID = '1f4c09fc-19ee-434c-94fa-c544bc7699f6'  // Pastikan SSH_CREDENTIALS_ID ini sesuai dengan ID yang ada di Jenkins
     }
 
     options {
@@ -47,7 +47,7 @@ pipeline {
                 script {
                     echo "Deploying Docker Container on EC2"
                     echo "EC2 Host: ${EC2_HOST}"
-                    sshagent(['52.54.155.185']) {
+                    sshagent(['1f4c09fc-19ee-434c-94fa-c544bc7699f6']) {
                         sh '''
                         ssh -o StrictHostKeyChecking=no '52.54.155.185' << EOF
                         sudo docker stop 'stockbarang_container' || true
