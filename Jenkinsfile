@@ -47,13 +47,13 @@ pipeline {
                 script {
                     echo "Deploying Docker Container on EC2"
                     echo "EC2 Host: ${EC2_HOST}"
-                    sshagent([SSH_CREDENTIALS_ID]) {
+                    sshagent(['ec2-ssh-key']) {
                         sh '''
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
-                        sudo docker stop ${CONTAINER_NAME} || true
-                        sudo docker rm ${CONTAINER_NAME} || true
-                        sudo docker pull ${IMAGE_NAME}
-                        sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
+                        ssh -o StrictHostKeyChecking=no 'ec2-52-54-155-185.compute-1.amazonaws.com' << EOF
+                        sudo docker stop 'stockbarang_container' || true
+                        sudo docker rm 'stockbarang_container' || true
+                        sudo docker pull 'alexhermansyah/stockbarang:latest'
+                        sudo docker run -d --name 'stockbarang_container' -p 80:80 --restart unless-stopped 'alexhermansyah/stockbarang:latest'
                         EOF
                         '''
                     }
