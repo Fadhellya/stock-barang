@@ -1,12 +1,5 @@
 pipeline {
   agent any
-  environment {
-    IMAGE_NAME = 'alexhermansyah/stockbarang:latest'
-    CONTAINER_NAME = 'stockbarang_container'
-    DOCKER_CREDENTIALS = credentials('dockerhub-credentials')
-    EC2_HOST = '52.54.155.185'
-    SSH_CREDENTIALS_ID = credentials('ec2-ssh')
-  }
   stages {
     stage('Checkout') {
       steps {
@@ -52,7 +45,9 @@ pipeline {
   }
   post {
     always {
-      cleanWs()
+      node {
+        cleanWs()
+      }
     }
 
     success {
