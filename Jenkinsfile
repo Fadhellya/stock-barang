@@ -6,7 +6,7 @@ pipeline {
         CONTAINER_NAME = 'stockbarang_container'
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
-        EC2_HOST = 'ec2-52-54-155-185.compute-1.amazonaws.com'
+        EC2_HOST = '52.54.155.185'
         SSH_CREDENTIALS_ID = 'ssh-agent-jenkins'  // Pastikan SSH_CREDENTIALS_ID ini sesuai dengan ID yang ada di Jenkins
     }
 
@@ -49,7 +49,7 @@ pipeline {
                     echo "EC2 Host: ${EC2_HOST}"
                     sshagent(['ssh-agent-jenkins']) {
                         sh '''
-                        ssh -o StrictHostKeyChecking=no 'ec2-52-54-155-185.compute-1.amazonaws.com' << EOF
+                        ssh -o StrictHostKeyChecking=no '52.54.155.185' << EOF
                         sudo docker stop 'stockbarang_container' || true
                         sudo docker rm 'stockbarang_container' || true
                         sudo docker pull 'alexhermansyah/stockbarang:latest'
