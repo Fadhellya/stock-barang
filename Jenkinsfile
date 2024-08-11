@@ -51,10 +51,11 @@ pipeline {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} 'echo "Connected to EC2"'
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
-                        sudo docker stop ${CONTAINER_NAME} || true
-                        sudo docker rm ${CONTAINER_NAME} || true
-                        sudo docker pull ${IMAGE_NAME}
-                        sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
+                        sudo su
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker pull ${IMAGE_NAME}
+                        docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
                         EOF
                         """
                     }
