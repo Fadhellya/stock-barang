@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker { 
-            image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         IMAGE_NAME = 'alexhermansyah/stockbarang:latest'
@@ -12,7 +7,7 @@ pipeline {
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
         EC2_HOST = '52.54.155.185'
-        SSH_CREDENTIALS_ID = credentials('ec2-remote')
+        SSH_CREDENTIALS_ID = credentials'ec2-remote'  // Pastikan SSH_CREDENTIALS_ID ini sesuai dengan ID yang ada di Jenkins
     }
 
     options {
@@ -29,9 +24,9 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
+                    sh '''
                     docker build -t ${IMAGE_NAME} .
-                    """
+                    '''
                 }
             }
         }
@@ -39,12 +34,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                        echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-                        docker push ${IMAGE_NAME}
-                        """
-                    }
+                    sh '''
+                    docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+                    docker push ${IMAGE_NAME}
+                    '''
                 }
             }
         }
@@ -52,15 +45,17 @@ pipeline {
         stage('Deploy Docker Container on EC2') {
             steps {
                 script {
-                    sshagent(['${SSH_CREDENTIALS_ID}']) {
-                        sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
-                        docker stop ${CONTAINER_NAME} || true
-                        docker rm ${CONTAINER_NAME} || true
-                        docker pull ${IMAGE_NAME}
-                        docker run -d --name ${CONTAINER_NAME} -p 80:80 ${IMAGE_NAME}
+                    echo "Deploying Docker Container on EC2"
+                    echo "EC2 Host: ${EC2_HOST}"
+                    sshagent(['52.54.155.185']) {
+                        sh '''
+                        ssh -o StrictHostKeyChecking=no '52.54.155.185' << EOF
+                        sudo docker stop 'stockbarang_container' || true
+                        sudo docker rm 'stockbarang_container' || true
+                        sudo docker pull 'alexhermansyah/stockbarang:latest'
+                        sudo docker run -d --name 'stockbarang_container' -p 80:80 --restart unless-stopped 'alexhermansyah/stockbarang:latest'
                         EOF
-                        """
+                        '''
                     }
                 }
             }
