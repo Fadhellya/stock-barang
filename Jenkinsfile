@@ -1,64 +1,75 @@
 pipeline {
-  agent any
-  stages {
-    stage('Checkout') {
-      steps {
-        git(url: 'https://github.com/Fadhellya/stock-barang.git', branch: 'main')
-      }
+    agent any
+
+    environment {
+        IMAGE_NAME = 'alexhermansyah/stockbarang:latest'
+        CONTAINER_NAME = 'stockbarang_container'
+        DOCKER_USERNAME = credentials('usernamedocker')
+        DOCKER_PASSWORD = credentials('passworddocker')
+        EC2_HOST = '52.54.155.185'  // Ganti dengan IP publik EC2
+        SSH_CREDENTIALS_ID = credentials('ec2-remote')  // Ganti dengan ID kredensial SSH yang ditambahkan ke Jenkins
     }
 
-    stage('Build Docker Image') {
-      steps {
-        script {
-          sh 'docker build -t ${IMAGE_NAME} .'
+    options {
+        timeout(time: 20, unit: 'MINUTES')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
         }
-      }
-    }
 
-    stage('Push Docker Image') {
-      steps {
-        script {
-          sh '''
-          echo "${DOCKER_CREDENTIALS_PSW}" | docker login -u "${DOCKER_CREDENTIALS_USR}" --password-stdin
-          docker push ${IMAGE_NAME}
-          '''
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                    docker build -t ${IMAGE_NAME} .
+                    """
+                }
+            }
         }
-      }
-    }
 
-    stage('Deploy Docker Container on EC2') {
-      steps {
-        script {
-          sshagent([SSH_CREDENTIALS_ID]) {
-            sh '''
-            ssh -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
-            sudo docker stop ${CONTAINER_NAME} || true
-            sudo docker rm ${CONTAINER_NAME} || true
-            sudo docker pull ${IMAGE_NAME}
-            sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
-            EOF
-            '''
-          }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    sh """
+                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                    docker push ${IMAGE_NAME}
+                    """
+                }
+            }
         }
-      }
-    }
-  }
-  post {
-    always {
-      node {
-        cleanWs()
-      }
+
+        stage('Deploy Docker Container on EC2') {
+            steps {
+                script {
+                    // SSH into EC2 and run Docker commands
+                    sshagent(['${SSH_CREDENTIALS_ID}']) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        docker pull ${IMAGE_NAME}
+                        docker run -d --name ${CONTAINER_NAME} -p 80:80 ${IMAGE_NAME}
+                        EOF
+                        """
+                    }
+                }
+            }
+        }
     }
 
-    success {
-      echo 'Deployment succeeded!'
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Deployment succeeded!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
     }
-
-    failure {
-      echo 'Deployment failed!'
-    }
-  }
-  options {
-    timeout(time: 20, unit: 'MINUTES')
-  }
 }
