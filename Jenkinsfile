@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git(url: 'https://github.com/Fadhellya/stock-barang.git', branch: 'main', credentialsId: 'github-login')
+        git(url: 'https://github.com/Fadhellya/stock-barang.git', branch: 'main')
       }
     }
 
