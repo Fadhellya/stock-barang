@@ -1,13 +1,18 @@
 pipeline {
-    agent any
+    agent {
+        docker { 
+            image 'docker:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         IMAGE_NAME = 'alexhermansyah/stockbarang:latest'
         CONTAINER_NAME = 'stockbarang_container'
         DOCKER_USERNAME = credentials('usernamedocker')
         DOCKER_PASSWORD = credentials('passworddocker')
-        EC2_HOST = '52.54.155.185'  // Ganti dengan IP publik EC2
-        SSH_CREDENTIALS_ID = credentials('ec2-remote')  // Ganti dengan ID kredensial SSH yang ditambahkan ke Jenkins
+        EC2_HOST = '52.54.155.185'
+        SSH_CREDENTIALS_ID = credentials('ec2-remote')
     }
 
     options {
@@ -34,10 +39,12 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    sh """
-                    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                    docker push ${IMAGE_NAME}
-                    """
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                        echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+                        docker push ${IMAGE_NAME}
+                        """
+                    }
                 }
             }
         }
@@ -45,7 +52,6 @@ pipeline {
         stage('Deploy Docker Container on EC2') {
             steps {
                 script {
-                    // SSH into EC2 and run Docker commands
                     sshagent(['${SSH_CREDENTIALS_ID}']) {
                         sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} << EOF
