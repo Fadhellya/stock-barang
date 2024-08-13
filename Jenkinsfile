@@ -54,7 +54,7 @@ pipeline {
                     echo "EC2 Host: ${EC2_HOST}"
                     withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                         sh '''
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << 'EOF'
+                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << "EOF"
                         
                         # Create Docker Volume if it doesn't exist
                         sudo docker volume ls | grep -q ${DB_VOLUME_NAME} || sudo docker volume create ${DB_VOLUME_NAME}
@@ -81,7 +81,7 @@ pipeline {
                         --network ${DB_NETWORK_NAME} phpmyadmin:latest
                         
                         # Ensure Docker Login
-                        sudo docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+                        echo "${DOCKER_PASSWORD}" | sudo docker login -u ${DOCKER_USERNAME} --password-stdin
                         
                         # Pull the Latest Image
                         sudo docker pull ${IMAGE_NAME}
