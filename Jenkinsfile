@@ -53,46 +53,25 @@ pipeline {
                     echo "Deploying Docker Container on EC2"
                     echo "EC2 Host: ${EC2_HOST}"
                     withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
-                        sh '''
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << "EOF"
-                        
-                        # Create Docker Volume if it doesn't exist
-                        sudo docker volume ls | grep -q ${DB_VOLUME_NAME} || sudo docker volume create ${DB_VOLUME_NAME}
-                        
-                        # Create Docker Network if it doesn't exist
-                        sudo docker network ls | grep -q ${DB_NETWORK_NAME} || sudo docker network create ${DB_NETWORK_NAME}
-                        
-                        # Stop and Remove existing containers if they exist
-                        sudo docker stop ${DB_CONTAINER_NAME} || true
-                        sudo docker rm ${DB_CONTAINER_NAME} || true
-                        sudo docker stop ${PHPMYADMIN_CONTAINER_NAME} || true
-                        sudo docker rm ${PHPMYADMIN_CONTAINER_NAME} || true
-                        sudo docker stop ${CONTAINER_NAME} || true
-                        sudo docker rm ${CONTAINER_NAME} || true
-                        
-                        # Run Database Container
-                        sudo docker run -d -p 3306:3306 --name ${DB_CONTAINER_NAME} --restart unless-stopped \
-                        -e MARIADB_ROOT_PASSWORD=${DBPASSWORD} -e MARIADB_DATABASE=stockbarang \
-                        --network ${DB_NETWORK_NAME} -v ${DB_VOLUME_NAME}:/var/lib/mysql mariadb:latest
-                        
-                        # Run phpMyAdmin Container
-                        sudo docker run -d -p 8080:80 -e PMA_HOST=${DB_CONTAINER_NAME} \
-                        --name ${PHPMYADMIN_CONTAINER_NAME} --restart unless-stopped \
-                        --network ${DB_NETWORK_NAME} phpmyadmin:latest
-                        
-                        # Ensure Docker Login
-                        echo "${DOCKER_PASSWORD}" | sudo docker login -u ${DOCKER_USERNAME} --password-stdin
-                        
-                        # Pull the Latest Image
-                        sudo docker pull ${IMAGE_NAME}
-                        
-                        # Run Application Container
-                        sudo docker run -d --name ${CONTAINER_NAME} --network ${DB_NETWORK_NAME} \
-                        -p 80:80 --restart unless-stopped ${IMAGE_NAME}
-                        
-                        EOF
-                        '''
-                   }
+    sh '''
+    ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} <<EOF
+    # Hentikan dan hapus kontainer yang ada
+    sudo docker stop ${CONTAINER_NAME} || true
+    sudo docker rm ${CONTAINER_NAME} || true
+
+    # Buat volume dan network jika belum ada
+    sudo docker volume create dbstockbarang || true
+    sudo docker network create stockbarang || true
+
+    # Tarik dan jalankan kontainer
+    sudo docker pull ${IMAGE_NAME}
+    sudo docker run -d -p 3306:3306 --name dbstockbarang --restart unless-stopped -e MARIADB_ROOT_PASSWORD=${DBPASSWORD} -e MARIADB_DATABASE=stockbarang --network stockbarang -v dbstockbarang:/var/lib/mysql docker.io/mariadb
+    sudo docker run -d -p 8080:80 -e PMA_HOST=dbstockbarang --name phpmyadminstockbarang --restart unless-stopped --network stockbarang docker.io/phpmyadmin
+    sudo docker run -d --name ${CONTAINER_NAME} --network stockbarang -p 80:80 --restart unless-stopped ${IMAGE_NAME}
+    EOF
+    '''
+}
+
                }
            }
        }
