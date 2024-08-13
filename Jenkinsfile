@@ -52,6 +52,7 @@ pipeline {
                         ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
                         sudo docker stop ${CONTAINER_NAME} || true
                         sudo docker rm ${CONTAINER_NAME} || true
+                        sudo docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
                         sudo docker pull ${IMAGE_NAME}
                         sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
                         EOF
