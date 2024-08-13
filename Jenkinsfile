@@ -68,6 +68,7 @@ pipeline {
                         sudo docker run -d -p 8080:80 -e PMA_HOST=${DB_CONTAINER_NAME} --name ${PHPMYADMIN_CONTAINER_NAME} --restart unless-stopped --network ${DB_NETWORK_NAME} docker.io/phpmyadmin
                         sudo docker run -d --name ${CONTAINER_NAME} --network ${DB_NETWORK_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
                         EOF
+                        
                         '''
                     }
                 }
