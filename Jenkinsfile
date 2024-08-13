@@ -57,6 +57,10 @@ pipeline {
                         ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} <<EOF
                         sudo docker stop ${CONTAINER_NAME} || true
                         sudo docker rm ${CONTAINER_NAME} || true
+                        sudo docker stop ${PHPMYADMIN_CONTAINER_NAME} || true
+                        sudo docker rm ${PHPMYADMIN_CONTAINER_NAME} || true
+                        sudo docker stop ${DB_CONTAINER_NAME} || true
+                        sudo docker rm ${DB_CONTAINER_NAME} || true
                         sudo docker volume create ${DB_VOLUME_NAME} || true
                         sudo docker network create ${DB_NETWORK_NAME} || true
                         sudo docker pull ${IMAGE_NAME}
