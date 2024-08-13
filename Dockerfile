@@ -15,7 +15,7 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
 # Menyiapkan environment variables untuk database
-ENV DB_HOST=mariadb-stockbarang
+ENV DB_HOST=dbstockbarang
 ENV DB_USER=root
 ENV DB_PASSWORD=12345678
 ENV DB_NAME=stockbarang
