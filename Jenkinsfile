@@ -55,20 +55,19 @@ pipeline {
                     withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                         sh '''
                         ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} <<EOF
-                        sudo docker stop ${CONTAINER_NAME} || true
-                        sudo docker rm ${CONTAINER_NAME} || true
-                        sudo docker stop ${PHPMYADMIN_CONTAINER_NAME} || true
-                        sudo docker rm ${PHPMYADMIN_CONTAINER_NAME} || true
-                        sudo docker stop ${DB_CONTAINER_NAME} || true
-                        sudo docker rm ${DB_CONTAINER_NAME} || true
-                        sudo docker volume create ${DB_VOLUME_NAME} || true
-                        sudo docker network create ${DB_NETWORK_NAME} || true
-                        sudo docker pull ${IMAGE_NAME}
-                        sudo docker run -d -p 3306:3306 --name ${DB_CONTAINER_NAME} --restart unless-stopped -e MARIADB_ROOT_PASSWORD=${DBPASSWORD} -e MARIADB_DATABASE=stockbarang --network ${DB_NETWORK_NAME} -v ${DB_VOLUME_NAME}:/var/lib/mysql docker.io/mariadb
-                        sudo docker run -d -p 8080:80 -e PMA_HOST=${DB_CONTAINER_NAME} --name ${PHPMYADMIN_CONTAINER_NAME} --restart unless-stopped --network ${DB_NETWORK_NAME} docker.io/phpmyadmin
-                        sudo docker run -d --name ${CONTAINER_NAME} --network ${DB_NETWORK_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
-                        EOF
-                        
+sudo docker stop ${CONTAINER_NAME} || true
+sudo docker rm ${CONTAINER_NAME} || true
+sudo docker stop ${PHPMYADMIN_CONTAINER_NAME} || true
+sudo docker rm ${PHPMYADMIN_CONTAINER_NAME} || true
+sudo docker stop ${DB_CONTAINER_NAME} || true
+sudo docker rm ${DB_CONTAINER_NAME} || true
+sudo docker volume create ${DB_VOLUME_NAME} || true
+sudo docker network create ${DB_NETWORK_NAME} || true
+sudo docker pull ${IMAGE_NAME}
+sudo docker run -d -p 3306:3306 --name ${DB_CONTAINER_NAME} --restart unless-stopped -e MARIADB_ROOT_PASSWORD=${DBPASSWORD} -e MARIADB_DATABASE=stockbarang --network ${DB_NETWORK_NAME} -v ${DB_VOLUME_NAME}:/var/lib/mysql docker.io/mariadb
+sudo docker run -d -p 8080:80 -e PMA_HOST=${DB_CONTAINER_NAME} --name ${PHPMYADMIN_CONTAINER_NAME} --restart unless-stopped --network ${DB_NETWORK_NAME} docker.io/phpmyadmin
+sudo docker run -d --name ${CONTAINER_NAME} --network ${DB_NETWORK_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
+EOF
                         '''
                     }
                 }
