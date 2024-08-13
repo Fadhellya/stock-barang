@@ -49,7 +49,7 @@ pipeline {
                     echo "EC2 Host: ${EC2_HOST}"
                     withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                         sh '''
-                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << EOF
+                        ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ubuntu@${EC2_HOST} << 'EOF'
                         sudo docker stop ${CONTAINER_NAME} || true
                         sudo docker rm ${CONTAINER_NAME} || true
                         sudo docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
@@ -57,10 +57,11 @@ pipeline {
                         sudo docker run -d --name ${CONTAINER_NAME} -p 80:80 --restart unless-stopped ${IMAGE_NAME}
                         EOF
                         '''
-                    }
-                }
-            }
-        }
+                   }
+               }
+           }
+       }
+
     }
 
     post {
